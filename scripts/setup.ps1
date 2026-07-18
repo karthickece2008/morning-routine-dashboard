@@ -194,9 +194,9 @@ Write-Step "Pre-wiring webhook URL into dashboard defaults"
 $typesFile = Join-Path $ProjectDir "src\lib\types.ts"
 if (Test-Path $typesFile) {
     $content = Get-Content $typesFile -Raw
-    $escapedUrl = $WebhookUrl -replace '/', '\/'
-    if ($content -match 'webhookUrl:\s*''[^']*''') {
-        $newContent = $content -replace 'webhookUrl:\s*''[^']*''', "webhookUrl: '$WebhookUrl'"
+
+    if ($content -match "webhookUrl:\s*'[^']*'") {
+        $newContent = $content -replace "webhookUrl:\s*'[^']*'", "webhookUrl: '$WebhookUrl'"
         Set-Content -Path $typesFile -Value $newContent -NoNewline
         Write-Ok "DEFAULT_SETTINGS.webhookUrl set to $WebhookUrl"
     } else {
