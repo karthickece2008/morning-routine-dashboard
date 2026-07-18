@@ -50,6 +50,19 @@ function Wait-For-Url($url, $timeoutSec = 60) {
     return $false
 }
 
+function Get-N8nCommand() {
+    $cmd = Get-Command "n8n.cmd" -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+
+    $plain = Get-Command "n8n" -ErrorAction SilentlyContinue
+    if ($plain) {
+        if ($plain.Source -match '\.(cmd|bat)$') { return $plain.Source }
+        return $plain.Source
+    }
+
+    return $null
+}
+
 # ===========================================================================
 # 1. Ensure Node.js / npm
 # ===========================================================================
@@ -65,7 +78,6 @@ if ((Test-Command "node") -and (Test-Command "npm")) {
         exit 1
     }
     winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements --silent
-    # Refresh PATH for this session so node/npm are immediately callable.
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     if (-not (Test-Command "node")) {
         Write-Err "Node.js install finished but node is not on PATH. Open a new terminal and re-run this script."
@@ -88,6 +100,7 @@ if (-not $SkipN8n) {
             Write-Err "Failed to install n8n. Try manually: npm install -g n8n"
             exit 1
         }
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
         Write-Ok "n8n installed."
     }
 
@@ -98,7 +111,6 @@ if (-not $SkipN8n) {
     $n8nHome = Join-Path $env:USERPROFILE ".n8n"
     if (-not (Test-Path $n8nHome)) { New-Item -ItemType Directory -Path $n8nHome | Out-Null }
 
-    # Kill any stale n8n process bound to our port so the new instance wins.
     $existing = Get-NetTCPConnection -LocalPort $N8nPort -State Listen -ErrorAction SilentlyContinue
     if ($existing) {
         $pidList = $existing.OwningProcess | Sort-Object -Unique
@@ -112,15 +124,25 @@ if (-not $SkipN8n) {
     }
 
     $n8nLog = Join-Path $PSScriptRoot "n8n-setup.log"
+    $n8nErrLog = Join-Path $PSScriptRoot "n8n-setup.err.log"
     $env:N8N_PORT = "$N8nPort"
     $env:N8N_HOST = "localhost"
     $env:N8N_USER_FOLDER = $n8nHome
-    # Disable the first-run owner-account wizard so the API is usable right away.
     $env:N8N_SECURE_COOKIE = "false"
-    $proc = Start-Process -FilePath "n8n" -ArgumentList "start" -WindowStyle Hidden -PassThru -RedirectStandardOutput $n8nLog -RedirectStandardError "$n8nLog.err"
+
+    $n8nCommand = Get-N8nCommand
+    if (-not $n8nCommand) {
+        Write-Err "n8n was installed but no runnable command was found on PATH. Open a new terminal and run: n8n --version"
+        exit 1
+    }
+
+    $proc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "\"$n8nCommand\"", "start" -WindowStyle Hidden -PassThru -RedirectStandardOutput $n8nLog -RedirectStandardError $n8nErrLog
     Write-Warn "n8n starting (PID $($proc.Id)). Waiting for http://localhost:$N8nPort ..."
     if (-not (Wait-For-Url "http://localhost:$N8nPort/healthz" 60)) {
         Write-Warn "Health endpoint did not respond within 60s; continuing anyway (n8n may still be starting)."
+        if (Test-Path $n8nErrLog) {
+            Write-Warn "Check $n8nErrLog if n8n does not come up."
+        }
     } else {
         Write-Ok "n8n is up at http://localhost:$N8nPort"
     }
@@ -131,14 +153,11 @@ if (-not $SkipN8n) {
     Write-Step "Importing webhook workflow into n8n"
     $workflowJson = Join-Path $PSScriptRoot "morning-routine-workflow.json"
 
-    # The n8n CLI import command writes the workflow into the running n8n DB.
-    # We then flip it to active so the production webhook URL responds.
-    & n8n import:workflow --input $workflowJson 2>&1 | Out-Host
+    & cmd.exe /c "\"$n8nCommand\" import:workflow --input \"$workflowJson\"" 2>&1 | Out-Host
     if ($LASTEXITCODE -ne 0) {
         Write-Warn "CLI import did not report success. The workflow may already exist; continuing."
     }
 
-    # Activate via REST API (n8n's public API under /api/v1).
     $apiBase = "http://localhost:$N8nPort/api/v1"
     try {
         $workflows = Invoke-RestMethod -Uri "$apiBase/workflows" -Method Get -ErrorAction Stop
@@ -158,7 +177,6 @@ if (-not $SkipN8n) {
         Write-Warn "Could not activate via REST API (first-run owner account may be required). The webhook will work once you activate it in the n8n UI at http://localhost:$N8nPort."
     }
 
-    # Probe the webhook itself.
     if (Wait-For-Url $WebhookUrl 15) {
         Write-Ok "Webhook reachable at $WebhookUrl"
     } else {
@@ -194,9 +212,10 @@ Write-Step "Pre-wiring webhook URL into dashboard defaults"
 $typesFile = Join-Path $ProjectDir "src\lib\types.ts"
 if (Test-Path $typesFile) {
     $content = Get-Content $typesFile -Raw
+    $replacementUrl = $WebhookUrl -replace '\$', '$$'
 
     if ($content -match "webhookUrl:\s*'[^']*'") {
-        $newContent = $content -replace "webhookUrl:\s*'[^']*'", "webhookUrl: '$WebhookUrl'"
+        $newContent = $content -replace "(webhookUrl:\s*)'[^']*'", "`$1'$replacementUrl'"
         Set-Content -Path $typesFile -Value $newContent -NoNewline
         Write-Ok "DEFAULT_SETTINGS.webhookUrl set to $WebhookUrl"
     } else {
@@ -220,11 +239,9 @@ if ($LASTEXITCODE -ne 0) {
 Pop-Location
 
 Write-Step "Launching dashboard"
-# Open the dev server in its own window so this script can exit cleanly.
 $devCmd = "cd `"$ProjectDir`"; npm run dev"
 Start-Process -FilePath "powershell" -ArgumentList "-NoExit", "-Command", $devCmd -WindowStyle Normal
 
-# Give Vite a moment, then open the browser.
 Start-Sleep -Seconds 5
 $dashboardUrl = "http://localhost:5173"
 try { Start-Process $dashboardUrl } catch { Write-Warn "Could not auto-open browser. Visit $dashboardUrl manually." }
