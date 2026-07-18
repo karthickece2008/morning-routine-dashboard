@@ -1,0 +1,155 @@
+/* Centralised design tokens for the Morning Routine Dashboard.
+   Warm-neutral palette with a teal primary and amber accent — deliberately
+   NOT purple/indigo. All semantic colors are defined here and reused below. */
+
+:root {
+  /* Neutral ramp (warm slate) */
+  --mrd-bg: #f5f6f8;
+  --mrd-surface: #ffffff;
+  --mrd-surface-2: #fbfaf7;
+  --mrd-border: #e7e8ee;
+  --mrd-border-strong: #d3d6e0;
+  --mrd-text: #1c2230;
+  --mrd-text-muted: #5b6472;
+  --mrd-text-faint: #8a93a3;
+
+  /* Primary (teal) */
+  --mrd-primary: #0d8b7f;
+  --mrd-primary-strong: #0a6f66;
+  --mrd-primary-soft: #e4f5f3;
+
+  /* Accent (amber) */
+  --mrd-accent: #d97706;
+  --mrd-accent-soft: #fef3e2;
+
+  /* Semantic */
+  --mrd-success: #15803d;
+  --mrd-success-soft: #e6f4ec;
+  --mrd-warning: #b45309;
+  --mrd-warning-soft: #fdf1e0;
+  --mrd-danger: #b91c1c;
+  --mrd-danger-soft: #fbe7e7;
+  --mrd-info: #1d4ed8;
+  --mrd-info-soft: #e7effd;
+
+  /* Status for connection */
+  --mrd-status-unknown: #8a93a3;
+  --mrd-status-testing: #d97706;
+  --mrd-status-connected: #15803d;
+  --mrd-status-disconnected: #b91c1c;
+
+  /* Shadows */
+  --mrd-shadow-sm: 0 1px 2px rgba(20, 28, 44, 0.06);
+  --mrd-shadow: 0 4px 14px rgba(20, 28, 44, 0.07);
+  --mrd-shadow-lg: 0 18px 40px rgba(20, 28, 44, 0.16);
+  --mrd-radius: 14px;
+  --mrd-radius-sm: 9px;
+
+  --mrd-font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.mrd-app {
+  font-family: var(--mrd-font);
+  color: var(--mrd-text);
+  background:
+    radial-gradient(1100px 600px at 85% -10%, #e4f5f3 0%, transparent 55%),
+    radial-gradient(900px 500px at -10% 10%, #fef3e2 0%, transparent 50%),
+    var(--mrd-bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.mrd-app * {
+  box-sizing: border-box;
+}
+
+/* Reusable surface card */
+.mrd-card {
+  background: var(--mrd-surface);
+  border: 1px solid var(--mrd-border);
+  border-radius: var(--mrd-radius);
+  box-shadow: var(--mrd-shadow-sm);
+}
+
+.mrd-card-hover:hover {
+  border-color: var(--mrd-border-strong);
+  box-shadow: var(--mrd-shadow);
+  transform: translateY(-1px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+/* Focus ring used across inputs/buttons */
+.mrd-focus:focus-visible {
+  outline: 2px solid var(--mrd-primary);
+  outline-offset: 2px;
+}
+
+/* Pulse used by the connection status dot while testing */
+@keyframes mrd-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.4; }
+}
+.mrd-pulse { animation: mrd-pulse 1.1s ease-in-out infinite; }
+
+/* Subtle entrance for cards */
+@keyframes mrd-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mrd-rise { animation: mrd-rise 0.28s ease-out both; }
+
+/* Skeleton shimmer for loading rows */
+@keyframes mrd-shimmer {
+  100% { transform: translateX(100%); }
+}
+.mrd-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #eef0f5;
+}
+.mrd-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: mrd-shimmer 1.3s infinite;
+}
+
+/* Custom scrollbar for the triage board */
+.mrd-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
+.mrd-scroll::-webkit-scrollbar-track { background: transparent; }
+.mrd-scroll::-webkit-scrollbar-thumb {
+  background: var(--mrd-border-strong);
+  border-radius: 999px;
+}
+.mrd-scroll::-webkit-scrollbar-thumb:hover { background: var(--mrd-text-faint); }
+
+/* Range slider for refresh interval */
+.mrd-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--mrd-border-strong);
+}
+.mrd-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mrd-primary);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: var(--mrd-shadow-sm);
+}
+.mrd-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mrd-primary);
+  cursor: pointer;
+  border: 2px solid #fff;
+}
