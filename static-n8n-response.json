@@ -1,0 +1,38 @@
+{
+    "emails": [
+      {
+        "id": "e1",
+        "subject": "Quotation required for zinc sheets",
+        "sender": "purchase@vendor.com",
+        "snippet": "Please share your latest quotation and delivery timeline.",
+        "category": "need_attention",
+        "matchedKeyword": "quotation",
+        "receivedAt": "2026-07-19T04:15:00Z",
+        "body": "Please share your latest quotation and delivery timeline."
+      },
+      {
+        "id": "e2",
+        "subject": "Dispatch update",
+        "sender": "logistics@supplier.com",
+        "snippet": "There may be a delay in delivery.",
+        "category": "need_attention",
+        "matchedKeyword": "delay",
+        "receivedAt": "2026-07-19T03:40:00Z",
+        "body": "There may be a delay in delivery for the latest order."
+      }
+    ],
+    "bills": [],
+    "commodities": [
+      {
+        "id": "c1",
+        "symbol": "ZINC",
+        "name": "Zinc",
+        "unit": "kg",
+        "price": 88.85,
+        "currency": "INR",
+        "changePct": 0.00,
+        "updatedAt": "2026-07-19T04:30:00Z",
+        "source": "MCX"
+      }
+    ]
+  }

@@ -136,7 +136,7 @@ if (-not $SkipN8n) {
         exit 1
     }
 
-    $proc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "\"$n8nCommand\"", "start" -WindowStyle Hidden -PassThru -RedirectStandardOutput $n8nLog -RedirectStandardError $n8nErrLog
+    $proc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$n8nCommand`" start" -WindowStyle Hidden -PassThru -RedirectStandardOutput $n8nLog -RedirectStandardError $n8nErrLog
     Write-Warn "n8n starting (PID $($proc.Id)). Waiting for http://localhost:$N8nPort ..."
     if (-not (Wait-For-Url "http://localhost:$N8nPort/healthz" 60)) {
         Write-Warn "Health endpoint did not respond within 60s; continuing anyway (n8n may still be starting)."
@@ -153,7 +153,7 @@ if (-not $SkipN8n) {
     Write-Step "Importing webhook workflow into n8n"
     $workflowJson = Join-Path $PSScriptRoot "morning-routine-workflow.json"
 
-    & cmd.exe /c "\"$n8nCommand\" import:workflow --input \"$workflowJson\"" 2>&1 | Out-Host
+    & cmd.exe /c "`"$n8nCommand`" import:workflow --input `"$workflowJson`"" 2>&1 | Out-Host
     if ($LASTEXITCODE -ne 0) {
         Write-Warn "CLI import did not report success. The workflow may already exist; continuing."
     }
