@@ -1,0 +1,48 @@
+{
+  "name": "Morning Routine Dashboard",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "morning-routine",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "morning-routine-webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"emails\": [\n    {\n      \"id\": \"e1\",\n      \"subject\": \"Invoice from Acme Corp\",\n      \"sender\": \"billing@acme.com\",\n      \"snippet\": \"Your July invoice is ready for review.\",\n      \"category\": \"unread\",\n      \"receivedAt\": \"2026-07-18T09:00:00Z\",\n      \"body\": \"Hello, your July invoice for $199 is attached. Payment is due by Aug 1.\"\n    },\n    {\n      \"id\": \"e2\",\n      \"subject\": \"Re: Project sync\",\n      \"sender\": \"alex@partner.io\",\n      \"snippet\": \"Can we move tomorrow's call to 2pm?\",\n      \"category\": \"need_attention\",\n      \"receivedAt\": \"2026-07-18T07:30:00Z\",\n      \"body\": \"Hey, can we move tomorrow's sync to 2pm instead of 11am?\"\n    },\n    {\n      \"id\": \"e3\",\n      \"subject\": \"Q3 roadmap draft\",\n      \"sender\": \"pm@internal.team\",\n      \"snippet\": \"Draft attached, need your feedback by Friday.\",\n      \"category\": \"need_followup\",\n      \"receivedAt\": \"2026-07-17T16:00:00Z\",\n      \"followUpDate\": \"2026-07-22\",\n      \"body\": \"Attached the Q3 roadmap draft. Please review and share feedback by Friday.\"\n    }\n  ],\n  \"bills\": [\n    {\n      \"id\": \"b1\",\n      \"vendor\": \"Acme Corp\",\n      \"amount\": 199.00,\n      \"currency\": \"USD\",\n      \"dueDate\": \"2026-08-01\",\n      \"status\": \"unpaid\",\n      \"invoiceRef\": \"INV-1001\"\n    },\n    {\n      \"id\": \"b2\",\n      \"vendor\": \"CloudHost Inc\",\n      \"amount\": 49.00,\n      \"currency\": \"USD\",\n      \"dueDate\": \"2026-07-25\",\n      \"status\": \"unpaid\",\n      \"invoiceRef\": \"INV-5520\"\n    },\n    {\n      \"id\": \"b3\",\n      \"vendor\": \"DesignStudio\",\n      \"amount\": 1200.00,\n      \"currency\": \"USD\",\n      \"dueDate\": \"2026-07-10\",\n      \"status\": \"overdue\",\n      \"invoiceRef\": \"INV-9003\"\n    }\n  ],\n  \"commodities\": [\n    {\n      \"id\": \"c1\",\n      \"symbol\": \"XAU\",\n      \"name\": \"Gold\",\n      \"unit\": \"oz\",\n      \"price\": 2410.50,\n      \"currency\": \"USD\",\n      \"changePct\": 0.32,\n      \"updatedAt\": \"2026-07-18T09:00:00Z\"\n    },\n    {\n      \"id\": \"c2\",\n      \"symbol\": \"XAG\",\n      \"name\": \"Silver\",\n      \"unit\": \"oz\",\n      \"price\": 29.84,\n      \"currency\": \"USD\",\n      \"changePct\": -0.15,\n      \"updatedAt\": \"2026-07-18T09:00:00Z\"\n    },\n    {\n      \"id\": \"c3\",\n      \"symbol\": \"CL\",\n      \"name\": \"Crude Oil\",\n      \"unit\": \"bbl\",\n      \"price\": 78.92,\n      \"currency\": \"USD\",\n      \"changePct\": 1.12,\n      \"updatedAt\": \"2026-07-18T09:00:00Z\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "respond-node",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
